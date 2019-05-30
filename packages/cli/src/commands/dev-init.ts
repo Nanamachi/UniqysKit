@@ -32,6 +32,11 @@ const command: CommandModule = {
       describe: 'Path to validator key',
       type: 'string'
     })
+    .option('git', {
+      default: '.gitignore',
+      describe: 'Path to .gitignore file',
+      type: 'string'
+    })
     .option('data', {
       default: '.data',
       describe: 'Path to data directory',
@@ -47,6 +52,7 @@ const command: CommandModule = {
     const configPath = path.join(process.cwd(), argv.config)
     const dappPath = path.join(process.cwd(), argv.dapp)
     const keyPath = path.join(process.cwd(), argv.key)
+    const gitignorePath = path.join(process.cwd(), argv.git)
     const dataDir = path.join(process.cwd(), argv.data)
 
     // check existing files
@@ -61,6 +67,10 @@ const command: CommandModule = {
       }
       if (fs.existsSync(keyPath)) {
         console.log(`'${keyPath}' already exists.`)
+        return
+      }
+      if (fs.existsSync(gitignorePath)) {
+        console.log(`'${gitignorePath}' already exists.`)
         return
       }
       if (fs.existsSync(dataDir) && (!fs.statSync(dataDir).isDirectory() || fs.readdirSync(dataDir).length !== 0)) {
@@ -90,10 +100,15 @@ const command: CommandModule = {
       publicKey: keyPair.publicKey.buffer.toString('hex'),
       address: keyPair.address.toString()
     }
+    const ignoredPaths: string[] = [
+      keyPath,
+      dataDir
+    ]
 
     fs.writeJsonSync(configPath, config, { spaces: 2 })
     fs.writeJsonSync(dappPath, dapp, { spaces: 2 })
     fs.writeJsonSync(keyPath, key, { spaces: 2 })
+    fs.writeFileSync(gitignorePath, ignoredPaths.join('\n'))
     fs.emptyDirSync(dataDir)
 
     console.log(`${argv.config}, ${argv.dapp}, ${argv.key} and ${argv.data} created successfully.`)
